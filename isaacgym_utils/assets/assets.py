@@ -347,6 +347,7 @@ class GymAsset(ABC):
                 for rb_idx in range(self.rb_count)
             ]]
         else:
+            # print("HAKUNA MATATA", env_idx, self._all_cts_cache[self._sim_rb_idxs_map[env_idx][name]])
             return self._all_cts_cache[self._sim_rb_idxs_map[env_idx][name]]
 
     def get_rb_ct_locs(self, env_idx, name):
@@ -385,6 +386,19 @@ class GymAsset(ABC):
             return True
         else:
             return self._scene.gym.apply_body_force(env_ptr, bh, force, loc)
+
+class GymSoftBodyAsset(GymAsset):
+    def __init__(self, urdf_path, *args, dof_props={}, **kwargs):
+        super().__init__(*args, **kwargs)
+        asset_uid = self._assets_root / urdf_path
+
+        self._gym_asset_options.default_dof_drive_mode = gymapi.DOF_MODE_POS
+        gym_asset = self._scene.gym.load_asset(self._scene.sim, str(self._assets_root), urdf_path, self._gym_asset_options)
+        
+        self._insert_asset(asset_uid, gym_asset)
+
+        self._dof_props = dof_props
+        self._n_dofs = self._scene.gym.get_asset_dof_count(gym_asset)
 
 
 class GymURDFAsset(GymAsset):
